@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pill Detextor Test</title>
+</head>
+<body>
+    <form action="{% url 'pill:pill_detector_api' %}"
+        method="post" 
+        id="pill_image_form"
+        enctype="multipart/form-data">
+
+        <input type="file"
+            name="pill_image" 
+            id="id_pill_image" 
+            accept="image/*"
+            required>
+
+        <div>
+            <img alt="preview" 
+                id="pill_image_preview" 
+                style="width: 300px; height: 300px; display: none;">
+        </div>
+
+        <input type="submit">
+    </form>
+
+    <script src="//unpkg.com/axios/dist/axios.min.js"></script>
+    <script>
+        class formSubmit {
+            constructor() {
+                this.pillImagePreview = document.getElementById('pill_image_preview');
+                this.pillImageInput = document.getElementById('id_pill_image');
+                this.form = document.getElementById('pill_image_form');
+                this.url = this.form.getAttribute('action');
+                this.config = {headers: {'Content-Type': 'multipart/form-data'}};
+
+                axios.defaults.xsrfCookieName = 'csrftoken';
+		        axios.defaults.xsrfHeaderName = 'X-CSRFToken';
+            };
+
+            init() {
+                this.form.addEventListener("submit", this.onSubmit.bind(this));
+                this.pillImageInput.addEventListener("change", this.onFileChange.bind(this));
+            };
+
+            onFileChange() {
+                const reader = new FileReader();
+
+                reader.onload = ({ target }) => {
+                    this.pillImagePreview.src = target.result;
+                    this.pillImagePreview.style.display = 'block'; 
+                };
+                
+                reader.readAsDataURL(this.pillImageInput.files[0]);
+            }
+
+            onSubmit(e) {
+                e.preventDefault(); 
+
+                const data = new FormData(e.target);
+
+                axios.post(this.url, data, this.config)
+                    .then((response) => {
+                        e.target.reset();
+                        alert(response.status);
+                    })
+                    .catch((err) => {
+                        alert(err.message);
+                    })
+                    .finally(() => {
+                        this.pillImagePreview.src = '';
+                        this.pillImagePreview.style.display = 'none'; 
+                    })
+            };
+        };
+
+        const form_submit = new formSubmit();
+        form_submit.init();
+    </script>
+</body>
+</html>
